@@ -13,12 +13,13 @@ struct GroupView: View {
     
     let group: ListGroup
     
-    @State private var showSaveError = false
+    @State private var showingNewChecklist = false
+    @State private var showingEditGroup = false
     
     private var checklists: [Checklist] {
-        group.checklists.sorted {
-            $0.sortOrder < $1.sortOrder
-        }
+        group.checklists
+            .filter { !$0.isPinned }
+            .sorted { $0.sortOrder < $1.sortOrder }
     }
     
     var body: some View {
@@ -37,28 +38,51 @@ struct GroupView: View {
         }
         .navigationTitle(group.title)
         .toolbar {
+            Button("Edit group", systemImage: "pencil") {
+                showingEditGroup = true
+            }
+            
             Button("New list", systemImage: "plus") {
-                addChecklist()
+                showingNewChecklist = true
             }
         }
-        .alert("Saving failed", isPresented: $showSaveError) {
-            Button(role: .cancel) {}
+        .sheet(isPresented: $showingNewChecklist) {
+            CollectionEditorView(
+                heading: "New list"
+            ) { title, symbol, color in
+                let checklist = Checklist(title: title)
+                checklist.symbolName = symbol
+                checklist.colorName = color
+                checklist.group = group
+                checklist.sortOrder = (checklists.map(\.sortOrder).max() ?? -1) + 1
+                
+                context.insert(checklist)
+                return save()
+            }
+        }
+        .sheet(isPresented: $showingEditGroup) {
+            CollectionEditorView(
+                heading: "Edit group",
+                title: group.title,
+                symbolName: group.symbolName,
+                colorName: group.colorName
+            ) { title, symbol, color in
+                group.title = title
+                group.symbolName = symbol
+                group.colorName = color
+                
+                return save()
+            }
         }
     }
     
-    private func addChecklist() {
-        let checklist = Checklist(
-            title: "New list",
-            group: group
-        )
-        
-        checklist.sortOrder = (group.checklists.map(\.sortOrder).max() ?? -1) + 1
-        
+    private func save() -> Bool {
         do {
             try context.save()
+            return true
         } catch {
             context.rollback()
-            showSaveError = true
+            return false
         }
     }
 }

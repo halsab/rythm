@@ -13,6 +13,7 @@ struct ChecklistView: View {
     
     let checklist: Checklist
     
+    @State private var showingEditChecklist = false
     @State private var showSaveError = false
     
     private var steps: [Step] {
@@ -42,6 +43,10 @@ struct ChecklistView: View {
         }
         .navigationTitle(checklist.title)
         .toolbar {
+            Button("Edit checklist", systemImage: "pencil") {
+                showingEditChecklist = true
+            }
+            
             Button(
                 checklist.isPinned ? "Unpin" : "Pin",
                 systemImage: checklist.isPinned ? "pin.slash" : "pin"
@@ -53,6 +58,26 @@ struct ChecklistView: View {
                 } catch {
                     context.rollback()
                     showSaveError = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditChecklist) {
+            CollectionEditorView(
+                heading: "Edit list",
+                title: checklist.title,
+                symbolName: checklist.symbolName,
+                colorName: checklist.colorName
+            ) { title, symbol, color in
+                checklist.title = title
+                checklist.symbolName = symbol
+                checklist.colorName = color
+                
+                do {
+                    try context.save()
+                    return true
+                } catch {
+                    context.rollback()
+                    return false
                 }
             }
         }

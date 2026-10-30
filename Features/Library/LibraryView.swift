@@ -17,14 +17,17 @@ struct LibraryView: View {
     @Query(sort: \Checklist.sortOrder)
     private var checklists: [Checklist]
     
-    @State private var showSaveError = false
+    @State private var showingNewGroup = false
+    @State private var showingNewChecklist = false
     
     private var pinned: [Checklist] {
         checklists.filter(\.isPinned)
     }
     
     private var ungrouped: [Checklist] {
-        checklists.filter { $0.group == nil }
+        checklists.filter {
+            $0.group == nil && !$0.isPinned
+        }
     }
     
     var body: some View {
@@ -61,7 +64,7 @@ struct LibraryView: View {
                 }
                 
                 if !ungrouped.isEmpty {
-                    Section {
+                    Section("Lists") {
                         ForEach(ungrouped) { checklist in
                             NavigationLink {
                                 ChecklistView(checklist: checklist)
@@ -79,30 +82,53 @@ struct LibraryView: View {
             .toolbar {
                 Menu {
                     Button("New group", systemImage: "folder.badge.plus") {
-                        context.insert(ListGroup(title: "New group"))
-                        save()
+                        showingNewGroup = true
                     }
                     
                     Button("New list", systemImage: "list.bullet") {
-                        context.insert(Checklist(title: "New list"))
-                        save()
+                        showingNewChecklist = true
                     }
                 } label: {
                     Image(systemName: "plus")
                 }
             }
-            .alert("Saving failed", isPresented: $showSaveError) {
-                Button(role: .cancel) {}
+            .sheet(isPresented: $showingNewGroup) {
+                CollectionEditorView(
+                    heading: "New group",
+                    symbolName: "folder.fill"
+                ) { title, symbol, color in
+                    let group = ListGroup(title: title)
+                    group.symbolName = symbol
+                    group.colorName = color
+                    group.sortOrder = (groups.map(\.sortOrder).max() ?? -1) + 1
+                    
+                    context.insert(group)
+                    return save()
+                }
+            }
+            .sheet(isPresented: $showingNewChecklist) {
+                CollectionEditorView(
+                    heading: "New list"
+                ) { title, symbol, color in
+                    let checklist = Checklist(title: title)
+                    checklist.symbolName = symbol
+                    checklist.colorName = color
+                    checklist.sortOrder = (checklists.map(\.sortOrder).max() ?? -1) + 1
+                    
+                    context.insert(checklist)
+                    return save()
+                }
             }
         }
     }
     
-    private func save() {
+    private func save() -> Bool {
         do {
             try context.save()
+            return true
         } catch {
             context.rollback()
-            showSaveError = true
+            return false
         }
     }
 }
