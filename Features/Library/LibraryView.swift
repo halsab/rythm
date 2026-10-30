@@ -17,24 +17,61 @@ struct LibraryView: View {
     @Query(sort: \Checklist.sortOrder)
     private var checklists: [Checklist]
     
+    @State private var showSaveError = false
+    
+    private var pinned: [Checklist] {
+        checklists.filter(\.isPinned)
+    }
+    
+    private var ungrouped: [Checklist] {
+        checklists.filter { $0.group == nil }
+    }
+    
     var body: some View {
         NavigationStack {
             List {
-                Section("Pinned") {
-                    ForEach(checklists.filter(\.isPinned)) { checklist in
-                        Text(checklist.title)
+                if !pinned.isEmpty {
+                    Section("Pinned") {
+                        ForEach(pinned) { checklist in
+                            NavigationLink {
+                                ChecklistView(checklist: checklist)
+                            } label: {
+                                Label(
+                                    checklist.title,
+                                    systemImage: checklist.symbolName
+                                )
+                            }
+                        }
                     }
                 }
                 
-                Section("Groups") {
-                    ForEach(groups) { group in
-                        Label(group.title, systemImage: group.symbolName)
+                if !groups.isEmpty {
+                    Section("Groups") {
+                        ForEach(groups) { group in
+                            NavigationLink {
+                                GroupView(group: group)
+                            } label: {
+                                Label(
+                                    group.title,
+                                    systemImage: group.symbolName
+                                )
+                            }
+                        }
                     }
                 }
                 
-                Section {
-                    ForEach(checklists.filter { $0.group == nil }) { checklist in
-                        Text(checklist.title)
+                if !ungrouped.isEmpty {
+                    Section {
+                        ForEach(ungrouped) { checklist in
+                            NavigationLink {
+                                ChecklistView(checklist: checklist)
+                            } label: {
+                                Label(
+                                    checklist.title,
+                                    systemImage: checklist.symbolName
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -43,15 +80,29 @@ struct LibraryView: View {
                 Menu {
                     Button("New group", systemImage: "folder.badge.plus") {
                         context.insert(ListGroup(title: "New group"))
+                        save()
                     }
                     
                     Button("New list", systemImage: "list.bullet") {
                         context.insert(Checklist(title: "New list"))
+                        save()
                     }
                 } label: {
                     Image(systemName: "plus")
                 }
             }
+            .alert("Saving failed", isPresented: $showSaveError) {
+                Button(role: .cancel) {}
+            }
+        }
+    }
+    
+    private func save() {
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            showSaveError = true
         }
     }
 }

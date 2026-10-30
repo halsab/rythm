@@ -21,7 +21,8 @@ final class Checklist {
     @Relationship(deleteRule: .cascade, inverse: \Step.checklist)
     var steps: [Step] = []
     
-    init(title: String) {
+    init(title: String, group: ListGroup? = nil) {
         self.title = title
+        self.group = group
     }
 }
