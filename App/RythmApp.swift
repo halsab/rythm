@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct RythmApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LibraryView()
         }
+        .modelContainer(for: [
+            ListGroup.self,
+            Checklist.self,
+            Step.self,
+        ])
     }
 }
