@@ -13,8 +13,18 @@ struct GroupView: View {
     
     let group: ListGroup
     
-    @State private var showingNewChecklist = false
-    @State private var showingEditGroup = false
+    @State private var editor: Editor?
+    
+    private enum Editor: String, Identifiable {
+        case newChecklist
+        case editGroup
+        
+        var id: String { rawValue }
+    }
+    
+    private var actions: LibraryActions {
+        LibraryActions(context: context)
+    }
     
     private var checklists: [Checklist] {
         group.checklists
@@ -39,50 +49,32 @@ struct GroupView: View {
         .navigationTitle(group.title)
         .toolbar {
             Button("Edit group", systemImage: "pencil") {
-                showingEditGroup = true
+                editor = .editGroup
             }
             
             Button("New list", systemImage: "plus") {
-                showingNewChecklist = true
+                editor = .newChecklist
             }
         }
-        .sheet(isPresented: $showingNewChecklist) {
-            CollectionEditorView(
-                heading: "New list"
-            ) { title, symbol, color in
-                let checklist = Checklist(title: title)
-                checklist.symbolName = symbol
-                checklist.colorName = color
-                checklist.group = group
-                checklist.sortOrder = (group.checklists.map(\.sortOrder).max() ?? -1) + 1
+        .sheet(item: $editor) { selection in
+            switch selection {
+            case .newChecklist:
+                CollectionEditorView(heading: "New list") { draft in
+                    try actions.createChecklist(from: draft, in: group)
+                }
                 
-                context.insert(checklist)
-                return save()
+            case .editGroup:
+                CollectionEditorView(
+                    heading: "Edit group",
+                    draft: CollectionDraft(
+                        title: group.title,
+                        symbolName: group.symbolName,
+                        colorName: group.colorName
+                    )
+                ) { draft in
+                    try actions.updateGroup(group, with: draft)
+                }
             }
-        }
-        .sheet(isPresented: $showingEditGroup) {
-            CollectionEditorView(
-                heading: "Edit group",
-                title: group.title,
-                symbolName: group.symbolName,
-                colorName: group.colorName
-            ) { title, symbol, color in
-                group.title = title
-                group.symbolName = symbol
-                group.colorName = color
-                
-                return save()
-            }
-        }
-    }
-    
-    private func save() -> Bool {
-        do {
-            try context.save()
-            return true
-        } catch {
-            context.rollback()
-            return false
         }
     }
 }

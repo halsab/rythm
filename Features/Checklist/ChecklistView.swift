@@ -15,6 +15,11 @@ struct ChecklistView: View {
     
     @State private var showingEditChecklist = false
     @State private var showSaveError = false
+    @State private var saveErrorMessage = ""
+    
+    private var actions: LibraryActions {
+        LibraryActions(context: context)
+    }
     
     private var steps: [Step] {
         checklist.steps.sorted {
@@ -51,12 +56,13 @@ struct ChecklistView: View {
                 checklist.isPinned ? "Unpin" : "Pin",
                 systemImage: checklist.isPinned ? "pin.slash" : "pin"
             ) {
-                checklist.isPinned.toggle()
-                
                 do {
-                    try context.save()
+                    try actions.setPinned(
+                        !checklist.isPinned,
+                        for: checklist
+                    )
                 } catch {
-                    context.rollback()
+                    saveErrorMessage = error.localizedDescription
                     showSaveError = true
                 }
             }
@@ -64,25 +70,19 @@ struct ChecklistView: View {
         .sheet(isPresented: $showingEditChecklist) {
             CollectionEditorView(
                 heading: "Edit list",
-                title: checklist.title,
-                symbolName: checklist.symbolName,
-                colorName: checklist.colorName
-            ) { title, symbol, color in
-                checklist.title = title
-                checklist.symbolName = symbol
-                checklist.colorName = color
-                
-                do {
-                    try context.save()
-                    return true
-                } catch {
-                    context.rollback()
-                    return false
-                }
+                draft: CollectionDraft(
+                    title: checklist.title,
+                    symbolName: checklist.symbolName,
+                    colorName: checklist.colorName
+                )
+            ) { draft in
+                try actions.updateChecklist(checklist, with: draft)
             }
         }
         .alert("Saving failed", isPresented: $showSaveError) {
-            Button(role: .cancel) {}
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveErrorMessage)
         }
     }
 }

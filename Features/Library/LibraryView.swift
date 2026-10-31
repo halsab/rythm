@@ -17,8 +17,18 @@ struct LibraryView: View {
     @Query(sort: \Checklist.sortOrder)
     private var checklists: [Checklist]
     
-    @State private var showingNewGroup = false
-    @State private var showingNewChecklist = false
+    @State private var editor: Editor?
+    
+    private enum Editor: String, Identifiable {
+        case newGroup
+        case newChecklist
+        
+        var id: String { rawValue }
+    }
+    
+    private var actions: LibraryActions {
+        LibraryActions(context: context)
+    }
     
     private var pinned: [Checklist] {
         checklists.filter(\.isPinned)
@@ -85,53 +95,34 @@ struct LibraryView: View {
             .toolbar {
                 Menu {
                     Button("New group", systemImage: "folder.badge.plus") {
-                        showingNewGroup = true
+                        editor = .newGroup
                     }
                     
                     Button("New list", systemImage: "list.bullet") {
-                        showingNewChecklist = true
+                        editor = .newChecklist
                     }
                 } label: {
                     Image(systemName: "plus")
                 }
             }
-            .sheet(isPresented: $showingNewGroup) {
-                CollectionEditorView(
-                    heading: "New group",
-                    symbolName: "folder.fill"
-                ) { title, symbol, color in
-                    let group = ListGroup(title: title)
-                    group.symbolName = symbol
-                    group.colorName = color
-                    group.sortOrder = (groups.map(\.sortOrder).max() ?? -1) + 1
+            .sheet(item: $editor) { selection in
+                switch selection {
+                case .newGroup:
+                    CollectionEditorView(
+                        heading: "New group",
+                        draft: CollectionDraft(
+                            symbolName: CollectionSymbol.folder.rawValue,
+                        )
+                    ) { draft in
+                        try actions.createGroup(from: draft)
+                    }
                     
-                    context.insert(group)
-                    return save()
+                case .newChecklist:
+                    CollectionEditorView(heading: "New list") { draft in
+                        try actions.createChecklist(from: draft)
+                    }
                 }
             }
-            .sheet(isPresented: $showingNewChecklist) {
-                CollectionEditorView(
-                    heading: "New list"
-                ) { title, symbol, color in
-                    let checklist = Checklist(title: title)
-                    checklist.symbolName = symbol
-                    checklist.colorName = color
-                    checklist.sortOrder = (checklists.map(\.sortOrder).max() ?? -1) + 1
-                    
-                    context.insert(checklist)
-                    return save()
-                }
-            }
-        }
-    }
-    
-    private func save() -> Bool {
-        do {
-            try context.save()
-            return true
-        } catch {
-            context.rollback()
-            return false
         }
     }
 }

@@ -9,12 +9,6 @@ import SwiftUI
 
 extension Color {
     static func app(_ name: String) -> Color {
-        switch name {
-        case "orange": .orange
-        case "green": .green
-        case "red": .red
-        case "purple": .purple
-        default: .blue
-        }
+        CollectionColor(rawValue: name)?.color ?? .blue
     }
 }

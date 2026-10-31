@@ -10,71 +10,55 @@ import SwiftUI
 struct CollectionEditorView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @State private var title: String
-    @State private var symbolName: String
-    @State private var colorName: String
+    @State private var draft: CollectionDraft
     @State private var showSaveError = false
+    @State private var saveErrorMessage = ""
     
     let heading: String
-    let onSave: (String, String, String) -> Bool
+    let onSave: @MainActor (CollectionDraft) throws -> Void
     
     init(
         heading: String,
-        title: String = "",
-        symbolName: String = "checklist",
-        colorName: String = "blue",
-        onSave: @escaping (String, String, String) -> Bool
+        draft: CollectionDraft = .init(),
+        onSave: @escaping @MainActor (CollectionDraft) throws -> Void
     ) {
         self.heading = heading
         self.onSave = onSave
 
-        _title = State(initialValue: title)
-        _symbolName = State(initialValue: symbolName)
-        _colorName = State(initialValue: colorName)
-    }
-    
-    private var cleanTitle: String {
-        title.trimmingCharacters(in: .whitespacesAndNewlines)
+        _draft = State(initialValue: draft)
     }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Name", text: $title)
+                    TextField("Name", text: $draft.title)
                 }
                 
                 Section("Appearace") {
                     HStack {
                         Spacer()
                         
-                        Image(systemName: symbolName)
+                        Image(systemName: draft.symbolName)
                             .font(.largeTitle)
-                            .foregroundStyle(Color.app(colorName))
+                            .foregroundStyle(Color.app(draft.colorName))
                         
                         Spacer()
                     }
                     .padding(.vertical, 12)
                     
-                    Picker("Icon", selection: $symbolName) {
-                        Label("Checklist", systemImage: "checklist")
-                            .tag("checklist")
-                        Label("Folder", systemImage: "folder.fill")
-                            .tag("folder.fill")
-                        Label("Fitness", systemImage: "dumbbell")
-                            .tag("dumbbell")
-                        Label("Recipy", systemImage: "fork.knife")
-                            .tag("fork.knife")
-                        Label("Time", systemImage: "clock")
-                            .tag("clock")
+                    Picker("Icon", selection: $draft.symbolName) {
+                        ForEach(CollectionSymbol.allCases) { symbol in
+                            Label(symbol.title, systemImage: symbol.rawValue)
+                                .tag(symbol.rawValue)
+                        }
                     }
                     
-                    Picker("Color", selection: $colorName) {
-                        Text("Blue").tag("blue")
-                        Text("Orange").tag("orange")
-                        Text("Green").tag("green")
-                        Text("Red").tag("red")
-                        Text("Purple").tag("purple")
+                    Picker("Color", selection: $draft.colorName) {
+                        ForEach(CollectionSymbol.allCases) { option in
+                            Text(option.title)
+                                .tag(option.rawValue)
+                        }
                     }
                 }
             }
@@ -88,22 +72,26 @@ struct CollectionEditorView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        if onSave(cleanTitle, symbolName, colorName) {
+                        do {
+                            try onSave(draft)
                             dismiss()
-                        } else {
+                        } catch {
+                            saveErrorMessage = error.localizedDescription
                             showSaveError = true
                         }
                     }
-                    .disabled(cleanTitle.isEmpty)
+                    .disabled(!draft.isValid)
                 }
             }
             .alert("Saving failed", isPresented: $showSaveError) {
-                Button(role: .cancel) {}
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(saveErrorMessage)
             }
         }
     }
 }
 
 #Preview {
-    CollectionEditorView(heading: "", onSave: { _,_,_ in true })
+    CollectionEditorView(heading: "", onSave: { _ in })
 }
