@@ -28,12 +28,11 @@ struct GroupView: View {
                 NavigationLink {
                     ChecklistView(checklist: checklist)
                 } label: {
-                    Label {
-                        Text(checklist.title)
-                    } icon: {
-                        Image(systemName: checklist.symbolName)
-                            .foregroundStyle(Color.app(checklist.colorName))
-                    }
+                    CollectionRow(
+                        title: checklist.title,
+                        symbolName: checklist.symbolName,
+                        colorName: checklist.colorName
+                    )
                 }
             }
         }

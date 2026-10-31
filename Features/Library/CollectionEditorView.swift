@@ -48,7 +48,7 @@ struct CollectionEditorView: View {
                     HStack {
                         Spacer()
                         
-                        Image(symbolName)
+                        Image(systemName: symbolName)
                             .font(.largeTitle)
                             .foregroundStyle(Color.app(colorName))
                         

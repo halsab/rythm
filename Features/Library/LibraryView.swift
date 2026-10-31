@@ -39,12 +39,11 @@ struct LibraryView: View {
                             NavigationLink {
                                 ChecklistView(checklist: checklist)
                             } label: {
-                                Label {
-                                    Text(checklist.title)
-                                } icon: {
-                                    Image(systemName: checklist.symbolName)
-                                        .foregroundStyle(Color.app(checklist.colorName))
-                                }
+                                CollectionRow(
+                                    title: checklist.title,
+                                    symbolName: checklist.symbolName,
+                                    colorName: checklist.colorName
+                                )
                             }
                         }
                     }
@@ -56,12 +55,11 @@ struct LibraryView: View {
                             NavigationLink {
                                 GroupView(group: group)
                             } label: {
-                                Label {
-                                    Text(group.title)
-                                } icon: {
-                                    Image(systemName: group.symbolName)
-                                        .foregroundStyle(Color.app(group.colorName))
-                                }
+                                CollectionRow(
+                                    title: group.title,
+                                    symbolName: group.symbolName,
+                                    colorName: group.colorName
+                                )
                             }
                         }
                     }
@@ -73,12 +71,11 @@ struct LibraryView: View {
                             NavigationLink {
                                 ChecklistView(checklist: checklist)
                             } label: {
-                                Label {
-                                    Text(checklist.title)
-                                } icon: {
-                                    Image(systemName: checklist.symbolName)
-                                        .foregroundStyle(Color.app(checklist.colorName))
-                                }
+                                CollectionRow(
+                                    title: checklist.title,
+                                    symbolName: checklist.symbolName,
+                                    colorName: checklist.colorName
+                                )
                             }
                         }
                     }
