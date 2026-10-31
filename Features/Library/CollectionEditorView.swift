@@ -23,7 +23,6 @@ struct CollectionEditorView: View {
         title: String = "",
         symbolName: String = "checklist",
         colorName: String = "blue",
-        showSaveError: Bool = false,
         onSave: @escaping (String, String, String) -> Bool
     ) {
         self.heading = heading
@@ -45,7 +44,18 @@ struct CollectionEditorView: View {
                     TextField("Name", text: $title)
                 }
                 
-                Section("Appearence") {
+                Section("Appearace") {
+                    HStack {
+                        Spacer()
+                        
+                        Image(symbolName)
+                            .font(.largeTitle)
+                            .foregroundStyle(Color.app(colorName))
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 12)
+                    
                     Picker("Icon", selection: $symbolName) {
                         Label("Checklist", systemImage: "checklist")
                             .tag("checklist")
@@ -53,7 +63,7 @@ struct CollectionEditorView: View {
                             .tag("folder.fill")
                         Label("Fitness", systemImage: "dumbbell")
                             .tag("dumbbell")
-                        Label("Recepy", systemImage: "fork.knife")
+                        Label("Recipy", systemImage: "fork.knife")
                             .tag("fork.knife")
                         Label("Time", systemImage: "clock")
                             .tag("clock")

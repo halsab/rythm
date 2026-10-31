@@ -39,10 +39,12 @@ struct LibraryView: View {
                             NavigationLink {
                                 ChecklistView(checklist: checklist)
                             } label: {
-                                Label(
-                                    checklist.title,
-                                    systemImage: checklist.symbolName
-                                )
+                                Label {
+                                    Text(checklist.title)
+                                } icon: {
+                                    Image(systemName: checklist.symbolName)
+                                        .foregroundStyle(Color.app(checklist.colorName))
+                                }
                             }
                         }
                     }
@@ -54,10 +56,12 @@ struct LibraryView: View {
                             NavigationLink {
                                 GroupView(group: group)
                             } label: {
-                                Label(
-                                    group.title,
-                                    systemImage: group.symbolName
-                                )
+                                Label {
+                                    Text(group.title)
+                                } icon: {
+                                    Image(systemName: group.symbolName)
+                                        .foregroundStyle(Color.app(group.colorName))
+                                }
                             }
                         }
                     }
@@ -69,10 +73,12 @@ struct LibraryView: View {
                             NavigationLink {
                                 ChecklistView(checklist: checklist)
                             } label: {
-                                Label(
-                                    checklist.title,
-                                    systemImage: checklist.symbolName
-                                )
+                                Label {
+                                    Text(checklist.title)
+                                } icon: {
+                                    Image(systemName: checklist.symbolName)
+                                        .foregroundStyle(Color.app(checklist.colorName))
+                                }
                             }
                         }
                     }

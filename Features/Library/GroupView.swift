@@ -28,12 +28,13 @@ struct GroupView: View {
                 NavigationLink {
                     ChecklistView(checklist: checklist)
                 } label: {
-                    Label(
-                        checklist.title,
-                        systemImage: checklist.symbolName
-                    )
+                    Label {
+                        Text(checklist.title)
+                    } icon: {
+                        Image(systemName: checklist.symbolName)
+                            .foregroundStyle(Color.app(checklist.colorName))
+                    }
                 }
-
             }
         }
         .navigationTitle(group.title)
@@ -54,7 +55,7 @@ struct GroupView: View {
                 checklist.symbolName = symbol
                 checklist.colorName = color
                 checklist.group = group
-                checklist.sortOrder = (checklists.map(\.sortOrder).max() ?? -1) + 1
+                checklist.sortOrder = (group.checklists.map(\.sortOrder).max() ?? -1) + 1
                 
                 context.insert(checklist)
                 return save()
