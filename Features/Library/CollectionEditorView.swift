@@ -35,7 +35,7 @@ struct CollectionEditorView: View {
                     TextField("Name", text: $draft.title)
                 }
                 
-                Section("Appearace") {
+                Section("Appearance") {
                     HStack {
                         Spacer()
                         

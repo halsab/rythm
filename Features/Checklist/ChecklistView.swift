@@ -48,7 +48,7 @@ struct ChecklistView: View {
         }
         .navigationTitle(checklist.title)
         .toolbar {
-            Button("Edit checklist", systemImage: "pencil") {
+            Button("Edit list", systemImage: "pencil") {
                 editor = .init(intent: .editChecklist(checklist))
             }
             
