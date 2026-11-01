@@ -16,8 +16,14 @@ enum CollectionColor: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
-    var title: String {
-        rawValue.capitalized
+    var title: LocalizedStringKey {
+        switch self {
+        case .blue: "Blue"
+        case .orange: "Orange"
+        case .green: "Green"
+        case .red: "Red"
+        case .purple: "Purple"
+        }
     }
     
     var color: Color {
@@ -40,7 +46,7 @@ enum CollectionSymbol: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
-    var title: String {
+    var title: LocalizedStringKey {
         switch self {
         case .checklist: "Checklist"
         case .folder: "Folder"

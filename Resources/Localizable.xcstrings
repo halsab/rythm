@@ -1,0 +1,103 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Appearace" : {
+
+    },
+    "Blue" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Checklist" : {
+
+    },
+    "Color" : {
+
+    },
+    "Edit checklist" : {
+
+    },
+    "Edit group" : {
+
+    },
+    "Edit list" : {
+
+    },
+    "Fitness" : {
+
+    },
+    "Folder" : {
+
+    },
+    "Green" : {
+
+    },
+    "Groups" : {
+
+    },
+    "Icon" : {
+
+    },
+    "Lists" : {
+
+    },
+    "Name" : {
+
+    },
+    "New group" : {
+
+    },
+    "New list" : {
+
+    },
+    "OK" : {
+
+    },
+    "Orange" : {
+
+    },
+    "Pin" : {
+
+    },
+    "Pinned" : {
+
+    },
+    "Purple" : {
+
+    },
+    "Recipe" : {
+
+    },
+    "Red" : {
+
+    },
+    "Rythm" : {
+
+    },
+    "Save" : {
+
+    },
+    "Saving failed" : {
+
+    },
+    "Time" : {
+
+    },
+    "Unpin" : {
+
+    }
+  },
+  "version" : "1.3"
+}

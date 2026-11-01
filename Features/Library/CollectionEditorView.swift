@@ -14,11 +14,11 @@ struct CollectionEditorView: View {
     @State private var showSaveError = false
     @State private var saveErrorMessage = ""
     
-    let heading: String
+    let heading: LocalizedStringKey
     let onSave: @MainActor (CollectionDraft) throws -> Void
     
     init(
-        heading: String,
+        heading: LocalizedStringKey,
         draft: CollectionDraft = .init(),
         onSave: @escaping @MainActor (CollectionDraft) throws -> Void
     ) {
@@ -55,7 +55,7 @@ struct CollectionEditorView: View {
                     }
                     
                     Picker("Color", selection: $draft.colorName) {
-                        ForEach(CollectionSymbol.allCases) { option in
+                        ForEach(CollectionColor.allCases) { option in
                             Text(option.title)
                                 .tag(option.rawValue)
                         }

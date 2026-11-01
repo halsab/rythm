@@ -17,14 +17,7 @@ struct LibraryView: View {
     @Query(sort: \Checklist.sortOrder)
     private var checklists: [Checklist]
     
-    @State private var editor: Editor?
-    
-    private enum Editor: String, Identifiable {
-        case newGroup
-        case newChecklist
-        
-        var id: String { rawValue }
-    }
+    @State private var editor: CollectionEditorRoute?
     
     private var actions: LibraryActions {
         LibraryActions(context: context)
@@ -40,25 +33,23 @@ struct LibraryView: View {
         }
     }
     
+    @ViewBuilder
+    private func checklistSection(
+        _ title: LocalizedStringKey,
+        items: [Checklist]
+    ) -> some View {
+        if !items.isEmpty {
+            Section(title) {
+                ForEach(items) { checklists in
+                    ChecklistLink(checklist: checklists)
+                }
+            }
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             List {
-                if !pinned.isEmpty {
-                    Section("Pinned") {
-                        ForEach(pinned) { checklist in
-                            NavigationLink {
-                                ChecklistView(checklist: checklist)
-                            } label: {
-                                CollectionRow(
-                                    title: checklist.title,
-                                    symbolName: checklist.symbolName,
-                                    colorName: checklist.colorName
-                                )
-                            }
-                        }
-                    }
-                }
-                
                 if !groups.isEmpty {
                     Section("Groups") {
                         ForEach(groups) { group in
@@ -75,54 +66,24 @@ struct LibraryView: View {
                     }
                 }
                 
-                if !ungrouped.isEmpty {
-                    Section("Lists") {
-                        ForEach(ungrouped) { checklist in
-                            NavigationLink {
-                                ChecklistView(checklist: checklist)
-                            } label: {
-                                CollectionRow(
-                                    title: checklist.title,
-                                    symbolName: checklist.symbolName,
-                                    colorName: checklist.colorName
-                                )
-                            }
-                        }
-                    }
-                }
+                checklistSection("Pinned", items: pinned)
+                checklistSection("Lists", items: ungrouped)
             }
             .navigationTitle("Rythm")
             .toolbar {
                 Menu {
                     Button("New group", systemImage: "folder.badge.plus") {
-                        editor = .newGroup
+                        editor = .init(intent: .createGroup)
                     }
                     
                     Button("New list", systemImage: "list.bullet") {
-                        editor = .newChecklist
+                        editor = .init(intent: .createChecklist(in: nil))
                     }
                 } label: {
                     Image(systemName: "plus")
                 }
             }
-            .sheet(item: $editor) { selection in
-                switch selection {
-                case .newGroup:
-                    CollectionEditorView(
-                        heading: "New group",
-                        draft: CollectionDraft(
-                            symbolName: CollectionSymbol.folder.rawValue,
-                        )
-                    ) { draft in
-                        try actions.createGroup(from: draft)
-                    }
-                    
-                case .newChecklist:
-                    CollectionEditorView(heading: "New list") { draft in
-                        try actions.createChecklist(from: draft)
-                    }
-                }
-            }
+            .collectionEditor($editor)
         }
     }
 }

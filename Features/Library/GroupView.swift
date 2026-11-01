@@ -13,14 +13,7 @@ struct GroupView: View {
     
     let group: ListGroup
     
-    @State private var editor: Editor?
-    
-    private enum Editor: String, Identifiable {
-        case newChecklist
-        case editGroup
-        
-        var id: String { rawValue }
-    }
+    @State private var editor: CollectionEditorRoute?
     
     private var actions: LibraryActions {
         LibraryActions(context: context)
@@ -35,47 +28,20 @@ struct GroupView: View {
     var body: some View {
         List {
             ForEach(checklists) { checklist in
-                NavigationLink {
-                    ChecklistView(checklist: checklist)
-                } label: {
-                    CollectionRow(
-                        title: checklist.title,
-                        symbolName: checklist.symbolName,
-                        colorName: checklist.colorName
-                    )
-                }
+                ChecklistLink(checklist: checklist)
             }
         }
         .navigationTitle(group.title)
         .toolbar {
             Button("Edit group", systemImage: "pencil") {
-                editor = .editGroup
+                editor = .init(intent: .editGroup(group))
             }
             
             Button("New list", systemImage: "plus") {
-                editor = .newChecklist
+                editor = .init(intent: .createChecklist(in: group))
             }
         }
-        .sheet(item: $editor) { selection in
-            switch selection {
-            case .newChecklist:
-                CollectionEditorView(heading: "New list") { draft in
-                    try actions.createChecklist(from: draft, in: group)
-                }
-                
-            case .editGroup:
-                CollectionEditorView(
-                    heading: "Edit group",
-                    draft: CollectionDraft(
-                        title: group.title,
-                        symbolName: group.symbolName,
-                        colorName: group.colorName
-                    )
-                ) { draft in
-                    try actions.updateGroup(group, with: draft)
-                }
-            }
-        }
+        .collectionEditor($editor)
     }
 }
 

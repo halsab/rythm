@@ -13,7 +13,7 @@ struct ChecklistView: View {
     
     let checklist: Checklist
     
-    @State private var showingEditChecklist = false
+    @State private var editor: CollectionEditorRoute?
     @State private var showSaveError = false
     @State private var saveErrorMessage = ""
     
@@ -49,7 +49,7 @@ struct ChecklistView: View {
         .navigationTitle(checklist.title)
         .toolbar {
             Button("Edit checklist", systemImage: "pencil") {
-                showingEditChecklist = true
+                editor = .init(intent: .editChecklist(checklist))
             }
             
             Button(
@@ -67,18 +67,7 @@ struct ChecklistView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingEditChecklist) {
-            CollectionEditorView(
-                heading: "Edit list",
-                draft: CollectionDraft(
-                    title: checklist.title,
-                    symbolName: checklist.symbolName,
-                    colorName: checklist.colorName
-                )
-            ) { draft in
-                try actions.updateChecklist(checklist, with: draft)
-            }
-        }
+        .collectionEditor($editor)
         .alert("Saving failed", isPresented: $showSaveError) {
             Button("OK", role: .cancel) {}
         } message: {
