@@ -16,9 +16,15 @@ struct ChecklistView: View {
     @State private var editor: CollectionEditorRoute?
     @State private var showSaveError = false
     @State private var saveErrorMessage = ""
+    @State private var newStepTitle = ""
+    @FocusState private var isAddingStepFocused: Bool
     
     private var actions: LibraryActions {
         LibraryActions(context: context)
+    }
+    
+    private var stepActions: ChecklistActions {
+        ChecklistActions(context: context)
     }
     
     private var steps: [Step] {
@@ -35,13 +41,30 @@ struct ChecklistView: View {
         List {
             Section {
                 ForEach(steps) { step in
-                    Label(
-                        step.title,
-                        systemImage: step.isCompleted
-                        ? "checkmark.circle.fill"
-                        : "circle"
-                    )
+                    HStack(spacing: 12) {
+                        Button {
+                            toggleStep(step)
+                        } label: {
+                            Image(systemName: step.isCompleted
+                                  ? "checkmark.circle.fill"
+                                  : "circle"
+                            )
+                            .font(.title3)
+                            .foregroundStyle(
+                                step.isCompleted ? Color.accentColor : Color.secondary
+                            )
+                            .frame(minWidth: 44, minHeight: 44)
+                        }
+                        .buttonStyle(.borderless)
+                        
+                        Text(step.title)
+                    }
                 }
+                
+                TextField("New step", text: $newStepTitle)
+                    .focused($isAddingStepFocused)
+                    .submitLabel(.next)
+                    .onSubmit(addStep)
             } header: {
                 Text("\(completedCount)/\(steps.count)")
             }
@@ -73,6 +96,37 @@ struct ChecklistView: View {
         } message: {
             Text(saveErrorMessage)
         }
+    }
+    
+    private func addStep() {
+        guard !newStepTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+        
+        do {
+            try stepActions.addStep(
+                named: newStepTitle,
+                to: checklist
+            )
+            
+            newStepTitle = ""
+            isAddingStepFocused = true
+        } catch {
+            reportStepError(error)
+        }
+    }
+    
+    private func toggleStep(_ step: Step) {
+        do {
+            try stepActions.toggleCompletion(for: step)
+        } catch {
+            reportStepError(error)
+        }
+    }
+    
+    private func reportStepError(_ error: Error) {
+        saveErrorMessage = error.localizedDescription
+        showSaveError = true
     }
 }
 

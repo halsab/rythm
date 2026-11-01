@@ -24,7 +24,6 @@
       ],
     },
     { "kind": "folder", "path": "Resources", "target-membership": [ "Rythm" ] },
-    { "kind": "folder", "path": "Rythm", "target-membership": [ "Rythm" ] },
     { "kind": "folder", "path": "RythmTests", "target-membership": [ "RythmTests" ] },
     { "kind": "folder", "path": "RythmUITests", "target-membership": [ "RythmUITests" ] },
     { "kind": "folder", "path": "Services", "target-membership": [ "Rythm" ] },
