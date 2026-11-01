@@ -65,4 +65,31 @@ struct ChecklistActions {
             throw error
         }
     }
+    
+    // MARK: - Rename
+    
+    func renameStep(
+        _ step: Step,
+        to rawTitle: String
+    ) throws {
+        let title = rawTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !title.isEmpty else {
+            throw ValidationError.emptyTitle
+        }
+        
+        guard step.title != title else {
+            return
+        }
+        
+        let previousTitle = step.title
+        step.title = title
+        
+        do {
+            try context.save()
+        } catch {
+            step.title = previousTitle
+            throw error
+        }
+    }
 }

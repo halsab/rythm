@@ -18,6 +18,9 @@ struct ChecklistView: View {
     @State private var saveErrorMessage = ""
     @State private var newStepTitle = ""
     @FocusState private var isAddingStepFocused: Bool
+    @State private var editingStep: Step?
+    @State private var editedTitle = ""
+    @FocusState private var isEditingTitleFocused: Bool
     
     private var actions: LibraryActions {
         LibraryActions(context: context)
@@ -57,7 +60,30 @@ struct ChecklistView: View {
                         }
                         .buttonStyle(.borderless)
                         
-                        Text(step.title)
+                        if editingStep === step {
+                            TextField("Step name", text: $editedTitle)
+                                .focused($isEditingTitleFocused)
+                                .submitLabel(.done)
+                                .onSubmit(saveEditedStep)
+                                .onAppear {
+                                    isEditingTitleFocused = true
+                                }
+                            
+                            Button("Cancel", systemImage: "xmark") {
+                                cancelEditing()
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.borderless)
+                        } else {
+                            Button {
+                                beginEditing(step)
+                            } label: {
+                                Text(step.title)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(.rect)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
                 
@@ -67,6 +93,11 @@ struct ChecklistView: View {
                     .onSubmit(addStep)
             } header: {
                 Text("\(completedCount)/\(steps.count)")
+            }
+        }
+        .onChange(of: isEditingTitleFocused) { wasFocused, isFocused in
+            if wasFocused && !isFocused {
+                saveEditedStep()
             }
         }
         .navigationTitle(checklist.title)
@@ -127,6 +158,44 @@ struct ChecklistView: View {
     private func reportStepError(_ error: Error) {
         saveErrorMessage = error.localizedDescription
         showSaveError = true
+    }
+    
+    private func beginEditing(_ step: Step) {
+        if editingStep != nil {
+            saveEditedStep()
+            
+            guard editingStep == nil else {
+                return
+            }
+        }
+        
+        editedTitle = step.title
+        editingStep = step
+    }
+    
+    private func saveEditedStep() {
+        guard let step = editingStep else {
+            return
+        }
+        
+        guard !editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            cancelEditing()
+            return
+        }
+        
+        do {
+            try stepActions.renameStep(step, to: editedTitle)
+            
+            cancelEditing()
+        } catch {
+            reportStepError(error)
+        }
+    }
+    
+    private func cancelEditing() {
+        editingStep = nil
+        editedTitle = ""
+        isEditingTitleFocused = false
     }
 }
 
