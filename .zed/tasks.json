@@ -1,0 +1,10 @@
+
+[
+  {
+    "label": "iOS: Build Simulator",
+    "command": "xcodebuild -project Rythm.xcodeproj -scheme Rythm -configuration Debug -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build",
+    "save": "all",
+    "reveal": "always",
+    "hide": "on_success"
+  }
+]
