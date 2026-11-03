@@ -19,8 +19,8 @@ struct ChecklistView: View {
     @State private var newStepTitle = ""
     @FocusState private var isAddingStepFocused: Bool
     @State private var editingStep: Step?
+    @State private var detailsStep: Step?
     @State private var editedTitle = ""
-    @FocusState private var isEditingTitleFocused: Bool
     
     private var actions: LibraryActions {
         LibraryActions(context: context)
@@ -44,47 +44,22 @@ struct ChecklistView: View {
         List {
             Section {
                 ForEach(steps) { step in
-                    HStack(spacing: 12) {
-                        Button {
+                    StepRow(
+                        step: step,
+                        isEditing: editingStep === step,
+                        editedTitle: $editedTitle,
+                        onToggleCompletion: {
                             toggleStep(step)
-                        } label: {
-                            Image(systemName: step.isCompleted
-                                  ? "checkmark.circle.fill"
-                                  : "circle"
-                            )
-                            .font(.title3)
-                            .foregroundStyle(
-                                step.isCompleted ? Color.accentColor : Color.secondary
-                            )
-                            .frame(minWidth: 44, minHeight: 44)
+                        },
+                        onStartEditing: {
+                            beginEditing(step)
+                        },
+                        onCancelEditing: cancelEditing,
+                        onSaveTitle: saveEditedStep,
+                        onShowDetails: {
+                            showDetails(for: step)
                         }
-                        .buttonStyle(.borderless)
-                        
-                        if editingStep === step {
-                            TextField("Step name", text: $editedTitle)
-                                .focused($isEditingTitleFocused)
-                                .submitLabel(.done)
-                                .onSubmit(saveEditedStep)
-                                .onAppear {
-                                    isEditingTitleFocused = true
-                                }
-                            
-                            Button("Cancel", systemImage: "xmark") {
-                                cancelEditing()
-                            }
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.borderless)
-                        } else {
-                            Button {
-                                beginEditing(step)
-                            } label: {
-                                Text(step.title)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(.rect)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
+                    )
                 }
                 
                 TextField("New step", text: $newStepTitle)
@@ -93,11 +68,6 @@ struct ChecklistView: View {
                     .onSubmit(addStep)
             } header: {
                 Text("\(completedCount)/\(steps.count)")
-            }
-        }
-        .onChange(of: isEditingTitleFocused) { wasFocused, isFocused in
-            if wasFocused && !isFocused {
-                saveEditedStep()
             }
         }
         .navigationTitle(checklist.title)
@@ -122,6 +92,15 @@ struct ChecklistView: View {
             }
         }
         .collectionEditor($editor)
+        .sheet(item: $detailsStep) { step in
+            StepDetailsView(step: step) { note, duration in
+                try stepActions.updateDetails(
+                    for: step,
+                    note: note,
+                    durationSeconds: duration
+                )
+            }
+        }
         .alert("Saving failed", isPresented: $showSaveError) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -173,6 +152,19 @@ struct ChecklistView: View {
         editingStep = step
     }
     
+    private func showDetails(for step: Step) {
+        if editingStep != nil {
+            saveEditedStep()
+            
+            guard editingStep == nil else {
+                return
+            }
+        }
+        
+        detailsStep = step
+    }
+
+    
     private func saveEditedStep() {
         guard let step = editingStep else {
             return
@@ -195,7 +187,6 @@ struct ChecklistView: View {
     private func cancelEditing() {
         editingStep = nil
         editedTitle = ""
-        isEditingTitleFocused = false
     }
 }
 

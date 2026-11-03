@@ -6,5 +6,9 @@
   },
   "lineLength": 120,
   "maximumBlankLines": 1,
-  "respectsExistingLineBreaks": true
+  "indentBlankLines": false,
+  "respectsExistingLineBreaks": true,
+  "lineBreakBeforeControlFlowKeywords": false,
+  "lineBreakBeforeEachArgument": false,
+  "lineBreakBeforeEachGenericRequirement": false
 }

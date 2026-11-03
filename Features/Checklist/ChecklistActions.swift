@@ -14,11 +14,14 @@ struct ChecklistActions {
     
     enum ValidationError: LocalizedError {
         case emptyTitle
+        case invalidDuration
         
         var errorDescription: String? {
             switch self {
             case .emptyTitle:
                 "Name cannot be empty."
+            case .invalidDuration:
+                "Duration must be greater than zero."
             }
         }
     }
@@ -89,6 +92,36 @@ struct ChecklistActions {
             try context.save()
         } catch {
             step.title = previousTitle
+            throw error
+        }
+    }
+    
+    // MARK: - Details
+    
+    func updateDetails(
+        for step: Step,
+        note: String,
+        durationSeconds: Int?
+    ) throws {
+        if let durationSeconds, durationSeconds <= 0 {
+            throw ValidationError.invalidDuration
+        }
+        
+        guard step.note != note || step.durationSeconds != durationSeconds else {
+            return
+        }
+        
+        let previousNote = step.note
+        let previousDuration = step.durationSeconds
+        
+        step.note = note
+        step.durationSeconds = durationSeconds
+        
+        do {
+            try context.save()
+        } catch {
+            step.note = previousNote
+            step.durationSeconds = previousDuration
             throw error
         }
     }
